@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="boardMapper">
+  	<insert id="insert" >
+  		insert into board(title, writer, content, imagefile) 
+  			values (#{title}, #{writer}, #{content}, #{imagefile})
+  	</insert>
+  	<select id="getPageList" resultType="domain.Board">
+  		select a.bno, b.title, b.writer, b.regdate, b.imagefile 
+		from (
+		   select bno from board
+		   <include refid="search"></include>
+		   order by bno desc
+		   limit #{pageStart}, #{qty}
+		 ) a left join board b  on  a.bno = b.bno
+  	</select>
+  	<select id="getTotal" resultType="int">
+  		select count(bno) from board
+  		<include refid="search"></include>
+  	</select>
+  	<select id="getDetail" resultType="domain.Board" parameterType="int">
+  		select * from board where bno = #{bno}
+  	</select>
+  	<update id="update" parameterType="domain.Board">
+  		update board set title = #{title}, content = #{content}, 
+  			imagefile = #{imagefile}, modedate=now()
+  			where bno = #{bno}
+  	</update>
+  	<delete id="delete" parameterType="int">
+  		delete from board where bno = #{bno}
+  	</delete>
+  	
+  	<sql id="search">
+  		<if test="type != null">
+  			<trim prefix="where (" suffix=")">
+  				<choose>
+  					<when test="type == 't'.toString()">
+  						title like concat('%', #{keyword}, '%') 
+  					</when>
+  					<when test="type == 'w'.toString()">
+  						writer like concat('%', #{keyword}, '%') 
+  					</when>
+  					<when test="type == 'c'.toString()">
+  						content like concat('%', #{keyword}, '%') 
+  					</when>
+  				</choose>
+  			</trim>
+  		</if>
+  	</sql>
+  	
+  </mapper>
